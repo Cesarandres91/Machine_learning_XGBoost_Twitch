@@ -21,15 +21,14 @@ XGBoost (Extreme Gradient Boosting) es un algoritmo de aprendizaje automático b
 
 ## Detalle paso a paso:
 
-### 1. Recolección de Datos 📊
+## 1. Recolección de Datos 📊
 En este caso, usaré los datos de las transmisiones de Twitch disponibles en Kaggle. 
 
 [https://www.kaggle.com/datasets/ashishkumarak/twitch-reviews-daily-updated](https://www.kaggle.com/datasets/hibrahimag1/top-1000-twitch-streamers-data-may-2024)
 
-### 2. Preprocesamiento de Datos 🧹
+## 2. Preprocesamiento de Datos 🧹
 Limpia y prepara los datos, incluyendo la eliminación de valores nulos, codificación de variables categóricas y normalización. Esto asegura que el modelo tenga datos de alta calidad para aprender.
 
-### Pasos,
 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
 2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
 2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
@@ -37,7 +36,7 @@ Limpia y prepara los datos, incluyendo la eliminación de valores nulos, codific
 2.e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
 2.f. Creación de Nuevas Características: Crear nuevas características si es necesario.
 
-#### 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
+### 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
 ``` python
 import pandas as pd
 df = pd.read_csv('Twitch.csv')
@@ -59,7 +58,7 @@ print(df.info())
 
 ![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/e84451bb-91ff-403f-aa95-b2c7eedb1216)
 
-#### 2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
+### 2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
 
 ``` python
 # Ejemplo de eliminación de filas con valores nulos
@@ -78,7 +77,7 @@ df['2ND_MOST_STREAMED_GAME'].fillna('Sin información', inplace=True)
 print(df['2ND_MOST_STREAMED_GAME'].isnull().sum())
 ```
 
-#### 2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
+### 2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
 
 ``` python
 # Identificar variables categóricas
@@ -107,7 +106,7 @@ También guarda los codificadores LabelEncoder en un diccionario por si necesita
 
 ![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/576f3f09-8695-4e90-adcf-7d97f3ea24e9)
 
-#### 2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
+### 2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
 
 Ahora utilizaremos StandardScaler de sklearn.preprocessing para estandarizar las características numéricas del dataset.
 Esto va a identificar las columnas numéricas y aplicar la estandarización, es decir, vamos a ajustar los datos para que tengan una media de 0 y una desviación estándar de 1. 
@@ -117,7 +116,7 @@ Esto es útil para muchos algoritmos de machine learning que funcionan mejor cua
 
 ![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/9c40d5b4-6c64-4ed4-ae46-340b6d75f1b6)
 
-2.e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
+### 2.e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
 
 Para este punto utilizaremos el método del rango intercuartílico (IQR) para identificar y manejar los valores atípicos.
 ¿Por qué es importante?, lo explico en más detalle aquí: [outlier_detection_and_handling.md](Machine_learning_XGBoost_Twitch/Otros detalles/outlier_detection_and_handling.md).
@@ -151,7 +150,7 @@ Definimos los límites inferior y superior utilizando el IQR.
 Reemplazamos los valores que están por debajo del límite inferior con el valor del límite inferior y los valores que están por encima del límite superior con el valor del límite superior.
 Esto conserva todas las filas del dataset mientras limita el impacto de los outliers, otra opción es eliminar los outliers.
 
-2.f. Creación de Nuevas Características: Crear nuevas características si es necesario.
+### 2.f. Creación de Nuevas Características: Crear nuevas características si es necesario.
 La creación de nuevas características puede ayudar a mejorar el rendimiento del modelo al proporcionar información adicional derivada de las características existentes.
 
 *La creación de nuevas características debe basarse en la comprensión del problema y el conocimiento del dominio, ya que características bien diseñadas pueden mejorar significativamente el rendimiento del modelo.
@@ -167,29 +166,29 @@ df_no_outliers['FOLLOWERS_X_VIEWERS'] = df_no_outliers['TOTAL_FOLLOWERS'] * df_n
 df_no_outliers['ACTIVE_DAYS_PERCENTAGE'] = df_no_outliers['ACTIVE_DAYS_PER_WEEK'] / 7
 ```
 
-### 3. División de Datos ✂️
+## 3. División de Datos ✂️
 Divide los datos en conjuntos de entrenamiento y prueba. Esto nos permitirá evaluar el rendimiento del modelo de manera objetiva.
 
 
-### 4. Selección de Características 🔍
+## 4. Selección de Características 🔍
 Identifica y selecciona las características relevantes que se utilizarán en el modelo. Este paso es crucial para mejorar la precisión y eficiencia del modelo.
 
-### 5. Configuración del Modelo ⚙️
+## 5. Configuración del Modelo ⚙️
 Configura los parámetros del modelo XGBoost. La configuración adecuada de los parámetros puede tener un gran impacto en el rendimiento del modelo.
 
-### 6. Entrenamiento del Modelo 🧠
+## 6. Entrenamiento del Modelo 🧠
 Entrena el modelo con el conjunto de datos de entrenamiento. Aquí es donde el modelo aprende a hacer predicciones basadas en los datos.
 
-### 7. Evaluación del Modelo 📈
+## 7. Evaluación del Modelo 📈
 Evalúa el rendimiento del modelo utilizando el conjunto de datos de prueba y métricas de evaluación adecuadas como RMSE, MAE, etc.
 
-### 8. Ajuste de Hiperparámetros 🔧
+## 8. Ajuste de Hiperparámetros 🔧
 Ajusta los hiperparámetros del modelo para mejorar su rendimiento. Esto puede incluir la optimización de parámetros como learning rate, max depth, etc.
 
-### 9. Validación Cruzada 🔄
+## 9. Validación Cruzada 🔄
 Realiza validación cruzada para asegurar la robustez del modelo. Esto ayuda a garantizar que el modelo generalice bien a datos no vistos.
 
-### 10. Implementación y Monitoreo 🚀
+## 10. Implementación y Monitoreo 🚀
 Implementa el modelo en producción y monitorea su desempeño en el tiempo. Es importante mantener el modelo actualizado y funcionando correctamente.
 
 ## Contribuciones 🤝
