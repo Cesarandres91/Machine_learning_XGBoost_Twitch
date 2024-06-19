@@ -172,29 +172,307 @@ df_no_outliers['ACTIVE_DAYS_PERCENTAGE'] = df_no_outliers['ACTIVE_DAYS_PER_WEEK'
 ```
 
 ## 3. División de Datos ✂️
+
 Divide los datos en conjuntos de entrenamiento y prueba. Esto nos permitirá evaluar el rendimiento del modelo de manera objetiva.
 
+3.a Estratificación: Si la variable objetivo está desbalanceada, usar la estratificación para asegurar que la proporción de clases se mantenga en ambos conjuntos.
+3.b Escalado: Asegurarse de que las transformaciones (como la normalización/estandarización) se apliquen correctamente.
+3.c Separación de Validación: Crear un conjunto de validación si es necesario para ajustar los hiperparámetros del modelo.
+
+``` python
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Definir las características (X) y la variable objetivo (y)
+X = df_no_outliers.drop('AVG_VIEWERS_PER_STREAM', axis=1)
+y = df_no_outliers['AVG_VIEWERS_PER_STREAM']
+
+# Dividir los datos en conjuntos de entrenamiento y prueba con estratificación (si es necesario)
+# Aquí no utilizamos estratificación ya que es una variable continua. Estratificación se usa típicamente para variables categóricas.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Aplicar escalado a los datos
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Verificar las formas de los conjuntos de entrenamiento y prueba
+print("Conjunto de entrenamiento:", X_train_scaled.shape, y_train.shape)
+print("Conjunto de prueba:", X_test_scaled.shape, y_test.shape)
+```
+Aquí se define las características (X) eliminando la columna AVG_VIEWERS_PER_STREAM del dataframe y define la variable objetivo (y) como AVG_VIEWERS_PER_STREAM.
+Utiliza train_test_split para dividir los datos en un conjunto de entrenamiento (80%) y un conjunto de prueba (20%), con una semilla aleatoria (random_state) de 42 para garantizar la reproducibilidad.
+Verifica las formas de los conjuntos de entrenamiento y prueba.
 
 ## 4. Selección de Características 🔍
-Identifica y selecciona las características relevantes que se utilizarán en el modelo. Este paso es crucial para mejorar la precisión y eficiencia del modelo.
+Identifica y selecciona las características relevantes que se utilizarán en el modelo, será una ayuda para mejorar la precisión y eficiencia del modelo.
+Primero, entrenaremos un modelo XGBoost inicial para obtener las importancias de las características y luego seleccionaremos las más relevantes.
+
+
+``` python
+import xgboost as xgb
+from sklearn.feature_selection import SelectFromModel
+
+# Definir un modelo XGBoost inicial
+initial_model = xgb.XGBRegressor(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=6,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    objective='reg:squarederror',
+    random_state=42
+)
+
+# Entrenar el modelo inicial
+initial_model.fit(X_train_scaled, y_train)
+
+# Obtener la importancia de las características
+importances = initial_model.feature_importances_
+
+# Crear un selector basado en el modelo
+selector = SelectFromModel(initial_model, prefit=True)
+
+# Transformar los datos de entrenamiento y prueba para seleccionar las características importantes
+X_train_selected = selector.transform(X_train_scaled)
+X_test_selected = selector.transform(X_test_scaled)
+
+# Verificar las nuevas formas de los conjuntos de entrenamiento y prueba
+print("Conjunto de entrenamiento después de la selección de características:", X_train_selected.shape)
+print("Conjunto de prueba después de la selección de características:", X_test_selected.shape)
+
+# Mostrar la importancia de las características
+xgb.plot_importance(initial_model)
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/69be1f45-c289-499f-90a3-027639a006df)
 
 ## 5. Configuración del Modelo ⚙️
 Configura los parámetros del modelo XGBoost. La configuración adecuada de los parámetros puede tener un gran impacto en el rendimiento del modelo.
+Vamos a configurar el modelo XGBoost con los hiperparámetros iniciales y entrenarlo utilizando las características seleccionadas, para ello
+-Define el modelo XGBoost con algunos hiperparámetros iniciales.
+-Entrena el modelo utilizando el conjunto de entrenamiento con las características seleccionadas.
+-Realiza predicciones sobre el conjunto de prueba.
+-Evalúa el rendimiento del modelo utilizando el error cuadrático medio (MSE).
+-Muestra la importancia de las características utilizando una gráfica.
+
+``` python
+import xgboost as xgb
+from sklearn.metrics import mean_squared_error
+
+# Definir el modelo XGBoost con algunos hiperparámetros iniciales
+model = xgb.XGBRegressor(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=6,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    objective='reg:squarederror',
+    random_state=42
+)
+
+# Entrenar el modelo con el conjunto de entrenamiento
+model.fit(X_train_selected, y_train)
+
+# Predecir en el conjunto de prueba
+y_pred = model.predict(X_test_selected)
+
+# Evaluar el rendimiento del modelo utilizando el error cuadrático medio
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse}")
+
+# Mostrar la importancia de las características
+xgb.plot_importance(model)
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/46dcc929-f855-43c6-94da-213f96bdc765)
+
+
+Ajuste de Hiperparámetros
+Después de entrenar el modelo inicial, puedes ajustar los hiperparámetros para mejorar el rendimiento del modelo. Esto se puede hacer utilizando técnicas como la búsqueda en cuadrícula (GridSearchCV) o la búsqueda aleatoria (RandomizedSearchCV) de sklearn.model_selection.
+*GridSearchCV es una técnica de optimización de hiperparámetros proporcionada por la biblioteca scikit-learn en Python. Su objetivo es encontrar la mejor combinación de hiperparámetros para un modelo de machine learning a través de una búsqueda exhaustiva sobre un conjunto especificado de parámetros, provee:
+Búsqueda Exhaustiva: GridSearchCV prueba todas las combinaciones posibles de los hiperparámetros especificados en una cuadrícula (grid) de parámetros.
+Validación Cruzada: Utiliza la validación cruzada para evaluar el rendimiento de cada combinación de hiperparámetros. La validación cruzada divide los datos en múltiples subconjuntos y evalúa el modelo varias veces para obtener una estimación robusta del rendimiento.
+Selección del Mejor Modelo: Selecciona la combinación de hiperparámetros que da el mejor rendimiento según la métrica de evaluación especificada (por ejemplo, precisión, F1-score, etc.).
+Facilita el Ajuste de Hiperparámetros: Permite ajustar automáticamente los hiperparámetros del modelo sin tener que hacerlo manualmente, lo que puede ser tedioso y propenso a errores.
+
+``` python
+from sklearn.model_selection import GridSearchCV
+
+# Definir el modelo XGBoost
+model = xgb.XGBRegressor(objective='reg:squarederror', random_state=42)
+
+# Definir la cuadrícula de hiperparámetros
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'learning_rate': [0.01, 0.1, 0.2],
+    'max_depth': [3, 6, 9],
+    'subsample': [0.6, 0.8, 1.0],
+    'colsample_bytree': [0.6, 0.8, 1.0]
+}
+
+# Configurar GridSearchCV
+grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error', verbose=1, n_jobs=-1)
+
+# Ajustar GridSearchCV
+grid_search.fit(X_train_selected, y_train)
+
+# Mostrar los mejores hiperparámetros
+print(f"Best hyperparameters: {grid_search.best_params_}")
+
+# Utilizar el mejor modelo encontrado para predecir
+best_model = grid_search.best_estimator_
+y_pred_best = best_model.predict(X_test_selected)
+
+# Evaluar el rendimiento del mejor modelo utilizando el error cuadrático medio
+mse_best = mean_squared_error(y_test, y_pred_best)
+print(f"Mean Squared Error (Best Model): {mse_best}")
+```
+
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/f0c9c05b-71ee-4eb7-b4f2-4c11e23437c0)
+
+Lo anterior,
+Define un modelo XGBoost.
+Define una cuadrícula de hiperparámetros para explorar.
+Configura y ajusta GridSearchCV para encontrar los mejores hiperparámetros.
+Muestra los mejores hiperparámetros encontrados.
+Utiliza el mejor modelo encontrado para predecir y evaluar su rendimiento.
+
+
 
 ## 6. Entrenamiento del Modelo 🧠
 Entrena el modelo con el conjunto de datos de entrenamiento. Aquí es donde el modelo aprende a hacer predicciones basadas en los datos.
 
+
+
 ## 7. Evaluación del Modelo 📈
 Evalúa el rendimiento del modelo utilizando el conjunto de datos de prueba y métricas de evaluación adecuadas como RMSE, MAE, etc.
+``` python
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import numpy as np
+
+# Predecir en el conjunto de prueba
+y_pred = best_model.predict(X_test_selected)
+
+# Calcular las métricas de evaluación
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+# Mostrar los resultados
+print(f"Mean Squared Error (MSE): {mse}")
+print(f"Root Mean Squared Error (RMSE): {rmse}")
+print(f"Mean Absolute Error (MAE): {mae}")
+print(f"R-squared (R²): {r2}")
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/cf950ad0-c358-40f1-a468-c3210f0eb73d)
+
+Los resultados obtenidos son bastante buenos y muestran que el modelo está funcionando bien
+
+Mean Squared Error (MSE): 0.008225852874267157
+El MSE es la media de los errores al cuadrado. Un valor más bajo indica que las predicciones están cerca de los valores reales. En este caso, 0.0082 es un valor bastante bajo, lo que sugiere que el modelo tiene buenos resultados.
+Root Mean Squared Error (RMSE): 0.09069648766224168
+
+El RMSE es la raíz cuadrada del MSE y proporciona una medida de error en las mismas unidades que la variable de salida. Un RMSE de aproximadamente 0.091 indica que el error típico del modelo es pequeño.
+Mean Absolute Error (MAE): 0.052813036632756494
+
+El MAE es la media de los errores absolutos. Un MAE de aproximadamente 0.053 indica que, en promedio, las predicciones del modelo están a 0.053 unidades de los valores reales.
+R-squared (R²): 0.9435291447382572
+El R² es una medida que indica la proporción de la varianza en la variable dependiente que es explicada por el modelo. Un R² de 0.944 sugiere que el 94.4% de la variación en los datos es explicada por el modelo, lo cual es muy bueno.
+
+
+
 
 ## 8. Ajuste de Hiperparámetros 🔧
 Ajusta los hiperparámetros del modelo para mejorar su rendimiento. Esto puede incluir la optimización de parámetros como learning rate, max depth, etc.
 
-## 9. Validación Cruzada 🔄
+## 9. Validación Cruzada 🔄 (Cross validation)
 Realiza validación cruzada para asegurar la robustez del modelo. Esto ayuda a garantizar que el modelo generalice bien a datos no vistos.
+
+La validación cruzada es una técnica utilizada para evaluar la capacidad de generalización de un modelo de machine learning. 
+Proporciona una estimación más robusta del rendimiento del modelo al dividir los datos en múltiples subconjuntos y entrenar y evaluar el modelo en diferentes combinaciones de estos subconjuntos.
+
+Validación Cruzada con XGBoost, utilizaremos la función cross_val_score de sklearn.model_selection para realizar la validación cruzada. 
+Para esto, necesitaremos definir el modelo y usar la métrica adecuada (en este caso, utilizaremos el error cuadrático medio negativo).
+
+``` python
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import make_scorer
+
+# Definir el modelo XGBoost con los mejores hiperparámetros encontrados
+model = xgb.XGBRegressor(
+    n_estimators=grid_search.best_params_['n_estimators'],
+    learning_rate=grid_search.best_params_['learning_rate'],
+    max_depth=grid_search.best_params_['max_depth'],
+    subsample=grid_search.best_params_['subsample'],
+    colsample_bytree=grid_search.best_params_['colsample_bytree'],
+    objective='reg:squarederror',
+    random_state=42
+)
+
+# Definir la métrica de evaluación (error cuadrático medio negativo)
+scorer = make_scorer(mean_squared_error, greater_is_better=False)
+
+# Realizar la validación cruzada
+cv_scores = cross_val_score(model, X_train_selected, y_train, cv=5, scoring=scorer)
+
+# Calcular la media y desviación estándar de los scores
+mean_cv_score = -cv_scores.mean()
+std_cv_score = cv_scores.std()
+
+# Mostrar los resultados
+print(f"Cross-Validation Mean Squared Error: {mean_cv_score}")
+print(f"Standard Deviation of Cross-Validation MSE: {std_cv_score}")
+```
+
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/ef9b9af4-bef9-4c63-8e59-620252893a61)
+
+Los resultados de la validación cruzada indican que el modelo tiene un buen desempeño generalizado. Aquí está la interpretación de cada métrica:
+
+Cross-Validation Mean Squared Error (MSE): 0.010974917294077107
+
+Este valor indica el error cuadrático medio promedio a través de las diferentes particiones de la validación cruzada. Un valor de aproximadamente 0.011 es bastante bajo, lo que sugiere que el modelo está haciendo predicciones precisas en general.
+Standard Deviation of Cross-Validation MSE: 0.001366182503274942
+
+La desviación estándar del MSE a través de las particiones es aproximadamente 0.0014. Esto es bastante bajo, lo que indica que el modelo es consistente en su rendimiento a través de las diferentes particiones de los datos.
+Resumen de los Resultados
+
+Conclusión:
+El modelo XGBoost tiene un buen rendimiento predictivo en general.
+El modelo es consistente y no muestra grandes variaciones en su desempeño a través de diferentes subconjuntos de datos, lo que sugiere una buena capacidad de generalización.
+
 
 ## 10. Implementación y Monitoreo 🚀
 Implementa el modelo en producción y monitorea su desempeño en el tiempo. Es importante mantener el modelo actualizado y funcionando correctamente.
+
+``` python
+import joblib
+
+# Guardar el mejor modelo encontrado
+joblib.dump(best_model, 'best_xgboost_model.pkl')
+print("Modelo guardado exitosamente.")
+```
+Para cargar el modelo guardado y realizar predicciones en un entorno de producción, utiliza el siguiente código
+
+``` python
+# Cargar el modelo guardado
+loaded_model = joblib.load('best_xgboost_model.pkl')
+print("Modelo cargado exitosamente.")
+
+# Realizar predicciones con el modelo cargado
+new_predictions = loaded_model.predict(X_test_selected)
+
+# Evaluar el rendimiento del modelo cargado
+mse_loaded_model = mean_squared_error(y_test, new_predictions)
+print(f"Mean Squared Error (Loaded Model): {mse_loaded_model}")
+```
+
+Monitoreo del Desempeño del Modelo,
+Implementa técnicas para monitorear el rendimiento del modelo en producción:
+
+Evaluar las Predicciones Regularmente: Comparar las predicciones del modelo con los resultados reales.
+Actualizar el Modelo: Reentrenar el modelo periódicamente con datos nuevos.
+Alarmas y Alertas: Configurar alarmas para alertar cuando el rendimiento del modelo cae por debajo de un umbral predefinido.
+Registros y Seguimiento de Métricas: Mantener registros de las métricas de rendimiento del modelo para analizar su evolución.
 
 ## Contribuciones 🤝
 
