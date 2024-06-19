@@ -10,6 +10,37 @@ XGBoost (Extreme Gradient Boosting) es un algoritmo de aprendizaje automático b
 ## Pasos del Proyecto 🛠️
 
 ### 1. Recolección de Datos 📊
+Obtén los datos necesarios para el problema que deseas resolver. En este caso, recolectaremos datos relacionados con las transmisiones de Twitch y su audiencia.
+
+### 2. Preprocesamiento de Datos 🧹
+Limpia y prepara los datos, incluyendo la eliminación de valores nulos, codificación de variables categóricas y normalización. Esto asegura que el modelo tenga datos de alta calidad para aprender.
+
+### 3. División de Datos ✂️
+Divide los datos en conjuntos de entrenamiento y prueba. Esto nos permitirá evaluar el rendimiento del modelo de manera objetiva.
+
+### 4. Selección de Características 🔍
+Identifica y selecciona las características relevantes que se utilizarán en el modelo. Este paso es crucial para mejorar la precisión y eficiencia del modelo.
+
+### 5. Configuración del Modelo ⚙️
+Configura los parámetros del modelo XGBoost. La configuración adecuada de los parámetros puede tener un gran impacto en el rendimiento del modelo.
+
+### 6. Entrenamiento del Modelo 🧠
+Entrena el modelo con el conjunto de datos de entrenamiento. Aquí es donde el modelo aprende a hacer predicciones basadas en los datos.
+
+### 7. Evaluación del Modelo 📈
+Evalúa el rendimiento del modelo utilizando el conjunto de datos de prueba y métricas de evaluación adecuadas como RMSE, MAE, etc.
+
+### 8. Ajuste de Hiperparámetros 🔧
+Ajusta los hiperparámetros del modelo para mejorar su rendimiento. Esto puede incluir la optimización de parámetros como learning rate, max depth, etc.
+
+### 9. Validación Cruzada 🔄
+Realiza validación cruzada para asegurar la robustez del modelo. Esto ayuda a garantizar que el modelo generalice bien a datos no vistos.
+
+### 10. Implementación y Monitoreo 🚀
+Implementa el modelo en producción y monitorea su desempeño en el tiempo. Es importante mantener el modelo actualizado y funcionando correctamente.
+
+
+### 1. Recolección de Datos 📊
 En este caso, usaré los datos de las transmisiones de Twitch disponibles en Kaggle. 
 ```
 [https://www.kaggle.com/datasets/ashishkumarak/twitch-reviews-daily-updated](https://www.kaggle.com/datasets/hibrahimag1/top-1000-twitch-streamers-data-may-2024)
@@ -99,26 +130,66 @@ También guarda los codificadores LabelEncoder en un diccionario por si necesita
 #### 2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
 
 Ahora utilizaremos StandardScaler de sklearn.preprocessing para estandarizar las características numéricas del dataset.
-Esto va a identificar las columnas numéricas y aplicar la estandarización, es decir, 
-vamos a ajustar los datos para que tengan una media de 0 y una desviación estándar de 1. 
+Esto va a identificar las columnas numéricas y aplicar la estandarización, es decir, vamos a ajustar los datos para que tengan una media de 0 y una desviación estándar de 1. 
 Esto es útil para muchos algoritmos de machine learning que funcionan mejor cuando las características tienen una escala similar.
+
+¿Por qué es importante?, lo explico en más detalle aquí: [normalization_and_standardization.md](Machine_learning_XGBoost_Twitch/Otros detalles/normalization_and_standardization.md).
 
 ![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/9c40d5b4-6c64-4ed4-ae46-340b6d75f1b6)
 
+2.e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
 
+Para este punto utilizaremos el método del rango intercuartílico (IQR) para identificar y manejar los valores atípicos.
+¿Por qué es importante?, lo explico en más detalle aquí: [outlier_detection_and_handling.md](Machine_learning_XGBoost_Twitch/Otros detalles/outlier_detection_and_handling.md).
 
+``` python
+import numpy as np
 
+# Calcular el primer cuartil (Q1) y el tercer cuartil (Q3)
+Q1 = df.quantile(0.25)
+Q3 = df.quantile(0.75)
+IQR = Q3 - Q1
 
+# Definir límites inferior y superior
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
 
+# Reemplazar outliers por los límites del IQR
+df_no_outliers = df.copy()
+for column in df_no_outliers.select_dtypes(include=['float64', 'int64']).columns:
+    df_no_outliers[column] = np.where(df_no_outliers[column] < lower_bound[column], lower_bound[column], df_no_outliers[column])
+    df_no_outliers[column] = np.where(df_no_outliers[column] > upper_bound[column], upper_bound[column], df_no_outliers[column])
 
+# Opcional: Eliminar outliers
+#df_outliers_removed = df[~outliers.any(axis=1)]
 
+# Verificar los cambios
+print(df_no_outliers.head())
+```
+Con esto calculamos el primer (Q1) y tercer cuartil (Q3) para cada columna.
+Definimos los límites inferior y superior utilizando el IQR.
+Reemplazamos los valores que están por debajo del límite inferior con el valor del límite inferior y los valores que están por encima del límite superior con el valor del límite superior.
+Esto conserva todas las filas del dataset mientras limita el impacto de los outliers, otra opción es eliminar los outliers.
 
+2.f. Creación de Nuevas Características: Crear nuevas características si es necesario.
+La creación de nuevas características puede ayudar a mejorar el rendimiento del modelo al proporcionar información adicional derivada de las características existentes.
 
-e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
-f. Creación de Nuevas Características: Crear nuevas características si es necesario.
+*La creación de nuevas características debe basarse en la comprensión del problema y el conocimiento del dominio, ya que características bien diseñadas pueden mejorar significativamente el rendimiento del modelo.
+
+``` python
+# Ratio de juegos por día activo
+df_no_outliers['GAMES_PER_ACTIVE_DAY'] = df_no_outliers['TOTAL_GAMES_STREAMED'] / df_no_outliers['ACTIVE_DAYS_PER_WEEK']
+
+# Interacción entre la cantidad de seguidores y el promedio de espectadores por transmisión
+df_no_outliers['FOLLOWERS_X_VIEWERS'] = df_no_outliers['TOTAL_FOLLOWERS'] * df_no_outliers['AVG_VIEWERS_PER_STREAM']
+
+# Porcentaje de días activos en una semana
+df_no_outliers['ACTIVE_DAYS_PERCENTAGE'] = df_no_outliers['ACTIVE_DAYS_PER_WEEK'] / 7
+```
 
 ### 3. División de Datos ✂️
 Divide los datos en conjuntos de entrenamiento y prueba. Esto nos permitirá evaluar el rendimiento del modelo de manera objetiva.
+
 
 ### 4. Selección de Características 🔍
 Identifica y selecciona las características relevantes que se utilizarán en el modelo. Este paso es crucial para mejorar la precisión y eficiencia del modelo.
