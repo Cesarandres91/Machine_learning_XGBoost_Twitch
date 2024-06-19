@@ -15,24 +15,105 @@ En este caso, usaré los datos de las transmisiones de Twitch disponibles en Kag
 [https://www.kaggle.com/datasets/ashishkumarak/twitch-reviews-daily-updated](https://www.kaggle.com/datasets/hibrahimag1/top-1000-twitch-streamers-data-may-2024)
 ```
 
-
 ### 2. Preprocesamiento de Datos 🧹
 Limpia y prepara los datos, incluyendo la eliminación de valores nulos, codificación de variables categóricas y normalización. Esto asegura que el modelo tenga datos de alta calidad para aprender.
 
-a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
+### Pasos,
+2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
+2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
+2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
+2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
+2.e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
+2.f. Creación de Nuevas Características: Crear nuevas características si es necesario.
 
+### 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
 ``` python
 import pandas as pd
 df = pd.read_csv('Twitch.csv')
 # Mostrar los primeros registros
-print(df.head())
+display(df.head())
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/16696030-3982-4e45-a094-184e68a99767)
+
+``` python
+# Resumen estadístico
+print(df.describe())
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/09af9eb4-cd82-4d21-9223-b12d9a8a567e)
+
+``` python
+# Información sobre el dataframe
+print(df.info())
 ```
 
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/e84451bb-91ff-403f-aa95-b2c7eedb1216)
+
+2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
+
+``` python
+# Ejemplo de eliminación de filas con valores nulos
+#df.dropna(inplace=True)
+
+# Alternativamente, podemos rellenar valores nulos con la media (para columnas numéricas) o la moda (para columnas categóricas)
+# df.fillna(df.mean(), inplace=True)
+# df.fillna(df.mode().iloc[0], inplace=True)
+
+#En este caso como se trata de una variable categorica correspondiente al 2ND_MOST_STREAMED_GAME, lo completaré con el texto "Sin información"
+
+# Rellenar valores nulos en la columna '2ND_MOST_STREAMED_GAME' con 'Sin información'
+df['2ND_MOST_STREAMED_GAME'].fillna('Sin información', inplace=True)
+
+# Verificar que los valores nulos han sido completados
+print(df['2ND_MOST_STREAMED_GAME'].isnull().sum())
+```
+
+2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
+
+``` python
+# Identificar variables categóricas
+categorical_columns = df.select_dtypes(include=['object']).columns
+print(categorical_columns)
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/ca1bf838-393c-48d7-98fd-cf65ac45cec5)
+
+Para, codificar las variables categoricas usaré Label Encoding, este método asigna un número entero único a cada categoría.
+
+``` python
+from sklearn.preprocessing import LabelEncoder
+
+# Aplicar Label Encoding a las variables categóricas
+label_encoders = {}
+for column in categorical_columns:
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+    label_encoders[column] = le
+
+# Verificar que las variables han sido codificadas
+print(df.head())
+```
+Este código identifica las columnas categóricas y aplica Label Encoding a cada una de ellas. 
+También guarda los codificadores LabelEncoder en un diccionario por si necesitamos revertir la codificación o realizar alguna transformación adicional en el futuro.
+
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/576f3f09-8695-4e90-adcf-7d97f3ea24e9)
+
+2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
+
+Ahora utilizaremos StandardScaler de sklearn.preprocessing para estandarizar las características numéricas del dataset.
+Esto va a identificar las columnas numéricas y aplicar la estandarización, es decir, 
+vamos a ajustar los datos para que tengan una media de 0 y una desviación estándar de 1. 
+Esto es útil para muchos algoritmos de machine learning que funcionan mejor cuando las características tienen una escala similar.
+
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/9c40d5b4-6c64-4ed4-ae46-340b6d75f1b6)
 
 
-b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
-c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
-d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
+
+
+
+
+
+
+
+
 e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
 f. Creación de Nuevas Características: Crear nuevas características si es necesario.
 
