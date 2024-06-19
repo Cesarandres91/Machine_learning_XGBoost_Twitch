@@ -30,10 +30,15 @@ En este caso, usaré los datos de las transmisiones de Twitch disponibles en Kag
 Limpia y prepara los datos, incluyendo la eliminación de valores nulos, codificación de variables categóricas y normalización. Esto asegura que el modelo tenga datos de alta calidad para aprender.
 
   2.a. **Inspección de Datos**: Revisar los primeros registros y el resumen estadístico.
+   
    2.b. **Manejo de Valores Nulos**: Identificar y tratar los valores nulos en el dataset.
+   
    2.c. **Codificación de Variables Categóricas**: Convertir las variables categóricas en valores numéricos.
+   
    2.d. **Normalización/Estandarización**: Normalizar o estandarizar las características numéricas.
+   
    2.e. **Detección y Manejo de Outliers**: Identificar y tratar valores atípicos.
+   
    2.f. **Creación de Nuevas Características**: Crear nuevas características si es necesario.
 
 ### 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
