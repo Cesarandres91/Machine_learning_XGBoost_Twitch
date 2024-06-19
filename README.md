@@ -11,9 +11,9 @@ XGBoost (Extreme Gradient Boosting) es un algoritmo de aprendizaje automático b
 
 ### 1. Recolección de Datos 📊
 En este caso, usaré los datos de las transmisiones de Twitch disponibles en Kaggle. 
-'''batch
+```
 https://www.kaggle.com/datasets/ashishkumarak/twitch-reviews-daily-updated
-'''
+```
 
 
 ### 2. Preprocesamiento de Datos 🧹
