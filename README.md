@@ -517,10 +517,5 @@ Registros y Seguimiento de Métricas: Mantener registros de las métricas de ren
 
 ## Licencia 📜
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo LICENSE para más detalles.
+Este proyecto está bajo la Licencia Mozilla Public License Version 2.0. Ver el archivo LICENSE para más detalles.
 
-## Contacto ✉️
-
-Para preguntas o comentarios, por favor contacta a [tu_email@example.com](mailto:tu_email@example.com).
-
-¡Gracias por visitar nuestro proyecto y esperamos que disfrutes trabajando con XGBoost tanto como nosotros! 🌟
