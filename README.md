@@ -208,6 +208,43 @@ Verifica las formas de los conjuntos de entrenamiento y prueba.
 Identifica y selecciona las características relevantes que se utilizarán en el modelo, será una ayuda para mejorar la precisión y eficiencia del modelo.
 Primero, entrenaremos un modelo XGBoost inicial para obtener las importancias de las características y luego seleccionaremos las más relevantes.
 
+Correlación de variables,
+import pandas as pd
+``` python
+# 'df_no_outliers' es el dataframe con todas las características y sin outliers
+# 'AVG_VIEWERS_PER_STREAM' es la variable objetivo
+
+# Calcular la matriz de correlación
+correlation_matrix = df_no_outliers.corr()
+
+# Extraer la correlación de todas las variables con respecto a la variable objetivo
+correlation_with_target = correlation_matrix['AVG_VIEWERS_PER_STREAM']
+
+# Mostrar las correlaciones
+print("Correlación de todas las variables con respecto a la variable objetivo 'AVG_VIEWERS_PER_STREAM':")
+print(correlation_with_target)
+```
+![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/0d34f889-a161-4633-8fbc-7a4831522f16)
+
+Para poder visualizarlo mejor:
+
+``` python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Configurar el tamaño del gráfico
+plt.figure(figsize=(12, 8))
+
+# Crear un mapa de calor de la matriz de correlación
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+
+# Mostrar el gráfico
+plt.title('Matriz de Correlación')
+plt.show()
+```
+![descarga (1)](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/13b51fdf-5288-4603-b980-aa20f4030389)
+
+
 
 ``` python
 import xgboost as xgb
