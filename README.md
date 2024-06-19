@@ -26,7 +26,7 @@ Limpia y prepara los datos, incluyendo la eliminación de valores nulos, codific
 2.e. Detección y Manejo de Outliers: Identificar y tratar valores atípicos.
 2.f. Creación de Nuevas Características: Crear nuevas características si es necesario.
 
-### 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
+#### 2.a. Inspección de Datos: Revisar los primeros registros y el resumen estadístico.
 ``` python
 import pandas as pd
 df = pd.read_csv('Twitch.csv')
@@ -48,7 +48,7 @@ print(df.info())
 
 ![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/e84451bb-91ff-403f-aa95-b2c7eedb1216)
 
-2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
+#### 2.b. Manejo de Valores Nulos: Identificar y tratar los valores nulos en el dataset.
 
 ``` python
 # Ejemplo de eliminación de filas con valores nulos
@@ -67,7 +67,7 @@ df['2ND_MOST_STREAMED_GAME'].fillna('Sin información', inplace=True)
 print(df['2ND_MOST_STREAMED_GAME'].isnull().sum())
 ```
 
-2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
+#### 2.c. Codificación de Variables Categóricas: Convertir las variables categóricas en valores numéricos.
 
 ``` python
 # Identificar variables categóricas
@@ -96,7 +96,7 @@ También guarda los codificadores LabelEncoder en un diccionario por si necesita
 
 ![image](https://github.com/Cesarandres91/Machine_learning_XGBoost_Twitch/assets/102868086/576f3f09-8695-4e90-adcf-7d97f3ea24e9)
 
-2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
+#### 2.d. Normalización/Estandarización: Normalizar o estandarizar las características numéricas.
 
 Ahora utilizaremos StandardScaler de sklearn.preprocessing para estandarizar las características numéricas del dataset.
 Esto va a identificar las columnas numéricas y aplicar la estandarización, es decir, 
